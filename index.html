@@ -89,7 +89,9 @@
             .then(async ()=>{
                 console.log("ImageTracker initialized!");
                 await LoadWebcams();
-                document.getElementById("startARButton").style.display = "block";
+                
+
+                document.getElementById("startARButton").click();
             })
             .catch(error => {
                 console.error("Failed to initialize ImageTracker. Are you missing opencv.js? " + error);
@@ -174,33 +176,50 @@
                     window.unityInstance.SendMessage('ARCamera', 'OnStartWebcamFail');
                 }  
             }
-            async function LoadWebcams(){
+            async function LoadWebcams() {
                 let backCams = [];
                 let devices = await navigator.mediaDevices.enumerateDevices();
+
+                // Filter out only the back-facing cameras
                 devices.forEach(mediaDevice => {
                     if (mediaDevice.kind === 'videoinput' && !mediaDevice.label.includes('facing front')) {
                         backCams.push(mediaDevice);
                     }
                 });
+
+                // Get the select dropdown element
                 var select = document.getElementById("chooseCamSel");
-                select.style.display = "block";
-                var count = 0;
-                //reverse array because some Android phones can't distinguish front and back cams at first load
-                //and when this happens, most of the time, front cam goes first and back cam goes last
+                select.style.display = "block";  // Make the select dropdown visible
+
+                // Reverse the array of back cameras to handle Android camera ordering
                 backCams = backCams.reverse();
-                backCams.forEach(mediaDevice => {
+
+                // Clear existing options in the dropdown
+                select.innerHTML = '';
+
+                // Populate the select dropdown with options
+                backCams.forEach((mediaDevice, index) => {
                     const option = document.createElement('option');
                     option.value = mediaDevice.deviceId;
-                    let label = `Camera ${count}`;
+                    let label = `Camera ${index}`;
                     if (mediaDevice.label) {
-                        label = mediaDevice.label
+                        label = mediaDevice.label;
                     }
                     const textNode = document.createTextNode(label);
                     option.appendChild(textNode);
                     select.appendChild(option);
-                    count++;
                 });
-                iTracker.WEBCAM_NAME = select.options[select.selectedIndex].innerHTML;
+
+                // Set the default value to the first camera (index 0)
+                if (backCams.length > 0) {
+                    // Select the first camera by default
+                    select.selectedIndex = 0;  // Set the first option as selected
+
+                    // Set the deviceId and camera name for the selected camera
+                    window.deviceId = backCams[0].deviceId;
+                    window.WEBCAM_SETTINGS.video['deviceId'] = window.deviceId;
+                    iTracker.WEBCAM_NAME = backCams[0].label || "Camera 0";  // Default to the first camera's name
+                }
             }
             function SelectCam(){
                 var select = document.getElementById("chooseCamSel");

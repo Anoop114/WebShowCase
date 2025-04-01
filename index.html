@@ -89,7 +89,7 @@
             .then(async ()=>{
                 console.log("ImageTracker initialized!");
                 await LoadWebcams();
-                document.getElementById("startARButton").style.display = "block";
+                document.getElementById("startARButton").click();
             })
             .catch(error => {
                 console.error("Failed to initialize ImageTracker. Are you missing opencv.js? " + error);
